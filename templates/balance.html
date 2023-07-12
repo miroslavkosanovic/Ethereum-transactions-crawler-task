@@ -10,7 +10,13 @@
     {% else %}
         <p>Wallet Address: {{ wallet_address }}</p>
         <p>Date: {{ check_date }}</p>
-        <p>Balance (ETH): {{ balance_eth }}</p>
+        <p>Balance (ETH): {{ eth_balance_eth }}</p>
+        <p>Token Balances:</p>
+        <ul>
+            {% for token, balance in token_balances.items() %}
+                <li>{{ token }}: {{ balance / 1e18 }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 </body>
 </html>

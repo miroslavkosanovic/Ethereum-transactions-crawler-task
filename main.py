@@ -67,6 +67,48 @@ def retrieve_balance_at_date(wallet_address, check_date):
     except requests.exceptions.RequestException as e:
         raise ConnectionError("Failed to connect to the Ethereum JSON-RPC API:", str(e))
 
+def retrieve_token_balance(wallet_address, token_contract_address):
+    try:
+        # Retrieve the token balance using the Ethereum JSON-RPC API
+        rpc_url = "https://mainnet.infura.io/v3/c02c07d301dd43f291d74f2f89b8a395"
+        headers = {
+            # Already added when you pass json= but not when you pass data=
+            # 'Content-Type': 'application/json',
+        }
+
+        payload = {
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'eth_call',
+            'params': [
+                {
+                    'to': token_contract_address,
+                    'data': f'0x70a08231000000000000000000000000{wallet_address[2:]}'
+                },
+                'latest'
+            ],
+        }
+
+        response = requests.post(rpc_url, headers=headers, json=payload)
+        data = response.json()
+
+        if 'result' in data:
+            result = data['result']
+            if result == '0x':
+                # Token balance is zero
+                return 0
+            else:
+                # Get the token balance in Wei
+                token_balance_wei = int(result, 16)
+                return token_balance_wei
+        else:
+            error_message = data.get("error", "Unknown error")
+            raise ValueError(f"Failed to retrieve token balance: {error_message}")
+
+    except requests.exceptions.RequestException as e:
+        raise ConnectionError("Failed to connect to the Ethereum JSON-RPC API:", str(e))
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -99,7 +141,14 @@ def balance():
             balance_wei = retrieve_balance_at_date(wallet_address, check_date)
             balance_eth = balance_wei / 1e18
 
-            return render_template("balance.html", wallet_address=wallet_address, check_date=check_date, balance_eth=balance_eth)
+            # Retrieve token balances
+            token_balances = {
+                'Bnb': retrieve_token_balance(wallet_address, '0xB8c77482e45F1F44dE1745F52C74426C631bDD52'),
+                'stETH': retrieve_token_balance(wallet_address, '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
+            }
+
+            return render_template("balance.html", wallet_address=wallet_address, check_date=check_date, eth_balance_eth=balance_eth, token_balances=token_balances)
+
 
         except (ValueError, ConnectionError) as e:
             return render_template("balance.html", error_message=str(e))
