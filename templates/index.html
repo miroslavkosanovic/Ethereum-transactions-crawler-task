@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ethereum Transaction Viewer</title>
+</head>
+<body>
+    <h1>Ethereum Transaction Viewer</h1>
+    <form method="POST">
+        <label for="wallet_address">Wallet Address:</label>
+        <input type="text" id="wallet_address" name="wallet_address"><br><br>
+        <label for="starting_block">Starting Block:</label>
+        <input type="text" id="starting_block" name="starting_block"><br><br>
+        <input type="submit" value="View Transactions">
+    </form>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <br>
+    <form method="POST" action="/balance">
+        <label for="wallet_address_balance">Wallet Address:</label>
+        <input type="text" id="wallet_address_balance" name="wallet_address"><br><br>
+        <label for="check_date">Date (YYYY-MM-DD):</label>
+        <input type="text" id="check_date" name="check_date"><br><br>
+        <input type="submit" value="Check Balance">
+    </form>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Transaction Data</title>
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .transaction-container {
+            margin-top: 40px;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .transaction-table {
+            width: 100%;
+        }
+
+        .transaction-table th {
+            background-color: #f8f9fa;
+            text-align: left;
+            padding: 8px;
+        }
+
+        .transaction-table td {
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5">Transaction Data</h1>
+
+        <div class="transaction-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Wallet Value (Last 14 Days)</h2>
+                    <div class="chart-container">
+                        <canvas id="walletChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Transaction List</h2>
+                    <table class="transaction-table table table-striped">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Value (ETH)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr>
+                                <td>{{ tx.from }}</td>
+                                <td>{{ tx.to }}</td>
+                                <td>{{ tx.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the wallet data from the Flask app
+        var walletData = JSON.parse('{{ wallet_data|tojson|safe }}');
+
+
+        // Filter the data for the last 14 days
+        var today = new Date();
+        var last14Days = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 13);
+        var filteredData = walletData.filter(function (data) {
+            var date = new Date(data.date);
+            return date >= last14Days && date <= today;
+        });
+
+        // Extract the labels and values for the chart
+        var labels = filteredData.map(function (data) {
+            return data.date;
+        });
+        
+        var values = [];
+        var balance = 0;
+        for (var i = 0; i < filteredData.length; i++) {
+            balance += filteredData[i].value;
+            values.push(balance);
+        }
+
+
+        // Create the chart using Chart.js
+        var ctx = document.getElementById('walletChart').getContext('2d');
+        var walletChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Wallet Value (ETH)',
+                    data: values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Net Balance (ETH)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

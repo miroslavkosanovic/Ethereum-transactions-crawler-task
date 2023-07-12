@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Balance at Date</title>
+</head>
+<body>
+    <h1>Balance at Date</h1>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% else %}
+        <p>Wallet Address: {{ wallet_address }}</p>
+        <p>Date: {{ check_date }}</p>
+        <p>Balance (ETH): {{ balance_eth }}</p>
+    {% endif %}
+</body>
+</html>
