@@ -1,17 +1,39 @@
-# Ethereum-transactions-crawler-task
-An application that allows a user to view transaction data from the Ethereum blockchain associated with a specific wallet address W that the user inputs, starting with block B. 
+Ethereum transactions crawler task
 
-The application gets iformation on:
-    Wallets (adresses)
-    Amounts of ETH associated with transactions made to and from the given Wallet W 
+Easily Explore Wallet Activity and Historical Balances
 
-Then it proceeds to show them in a simple human-readable way (ideally through a web page).
+### Description:
 
-Also the application, given a date in YYYY-MM-DD format, returns the exact value of ETH/other tokens that were available on the given adress a YYYY-MM-DD 00:00 UTC time.
+This application allows users to explore transaction data from the Ethereum blockchain associated with a specific wallet address. By providing the desired wallet address (W) and a starting block (B), users can gain insights into wallet activity and monitor the movement of ETH and other tokens.
 
-# To run this web scraping application 
-Prerequisites: Python version 3.0 or later,pip ("curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py", "python get-pip.py"), Flask ("pip install flask"), requests("pip install requests")
+   
+#### Key Features:
 
-1. Clone the repository
-3. Run main.py ("python main.py")
-4. Enter localhost:5000 in your web browser
+1. Ethereum transactions crawler: The application retrieves and presents information on wallets (addresses) and the amounts of ETH associated with transactions made to and from the specified wallet address (W). Users can track the flow of funds and identify transaction trends.
+2.  Simple and Human-Readable Presentation: The transaction data is organized and presented in a clear and intuitive manner and can be previewed via simple web page.  
+3. Historical Balance Lookup: In addition to real-time transaction data, users can input a specific date in YYYY-MM-DD format and obtain the exact value of ETH and other tokens held by the address at 00:00 UTC on that day.  
+
+
+
+#### Demo: `IMG`
+
+- Transaction example website: `https://etherscan.io/tokentxns`
+- Demo:
+- how to enter wallet address,
+- block
+- date
+
+##### **Prerequisites**:  
+- Python version 3.0 or later
+- pip:
+- `curl [https://bootstrap.pypa.io/get-pip.py](https://bootstrap.pypa.io/get-pip.py) -o get-pip.py`
+- `python get-pip.py`
+- Flask: `pip install flask`
+- requests: `pip install requests`
+- python-dotenv: `pip install python-dotenv`
+
+### How to run
+
+1.  Clone this repo
+2.  Navigate to the project root and run main.py `python main.py`
+3.  Navigate to the `localhost:5000` in your browser

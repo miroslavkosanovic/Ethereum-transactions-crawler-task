@@ -2,21 +2,36 @@
 <html>
 <head>
     <title>Balance at Date</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Balance at Date</h1>
-    {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
-    {% else %}
-        <p>Wallet Address: {{ wallet_address }}</p>
-        <p>Date: {{ check_date }}</p>
-        <p>Balance (ETH): {{ eth_balance_eth }}</p>
-        <p>Token Balances:</p>
-        <ul>
-            {% for token, balance in token_balances.items() %}
-                <li>{{ token }}: {{ balance / 1e18 }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <div class="container">
+        <h1>Balance at Date</h1>
+        {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
+        {% else %}
+            <div class="card">
+                <div class="card-header">
+                    Wallet Information
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Wallet Address: {{ wallet_address }}</p>
+                    <p class="card-text">Date: {{ check_date }}</p>
+                    <p class="card-text">Balance (ETH): {{ eth_balance_eth }}</p>
+                    <p class="card-text">Token Balances:</p>
+                    <ul class="list-group">
+                        {% for token, balance in token_balances.items() %}
+                            <li class="list-group-item">{{ token }}: {{ balance / 1e18 }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
