@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request
 from datetime import datetime
+from decimal import Decimal
 
 # Set up Flask web application
 app = Flask(__name__)
@@ -99,6 +100,7 @@ def retrieve_wallet_creation_date(wallet_address):
         raise ConnectionError("Failed to connect to the Etherscan API:", str(e))
 
 
+
 def retrieve_balance_at_date(wallet_address, check_date):
     """Retrieves the balance of a wallet at a specific date.
 
@@ -107,7 +109,7 @@ def retrieve_balance_at_date(wallet_address, check_date):
         check_date (datetime): The date to check the balance.
 
     Returns:
-        int: The balance of the wallet in Wei.
+        float: The balance of the wallet in ETH.
 
     Raises:
         ValueError: If the check date is invalid or the retrieval of balance fails.
@@ -118,27 +120,25 @@ def retrieve_balance_at_date(wallet_address, check_date):
         if check_date < wallet_creation_date:
             raise ValueError("Invalid check date: Date is before wallet creation")
 
-        
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         if check_date > today:
-            raise ValueError("Invalid check date. Please enter a date on or before today.")
-            
-        # Convert the date to Unix timestamp
-        unix_timestamp = int(check_date.timestamp())
+            raise ValueError("Invalid check date: Date is after today")
 
         payload = {
             'jsonrpc': '2.0',
             'id': 1,
-            'method': 'eth_blockNumber',
+            'method': 'eth_getBalance',
+            'params': [wallet_address, 'latest'],
         }
 
         response = requests.post(infura_api_key, json=payload)
         data = response.json()
 
         if "result" in data:
-            # Get the balance in Wei
+            # Get the balance in Wei and convert to ETH
             balance_wei = int(data["result"], 16)
-            return balance_wei
+            balance_eth = balance_wei / 1e18
+            return balance_eth
         else:
             error_message = data.get("error", "Unknown error")
             raise ValueError(f"Failed to retrieve balance: {error_message}")
