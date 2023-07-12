@@ -136,7 +136,7 @@ def retrieve_balance_at_date(wallet_address, check_date):
         if "result" in data:
             # Get the balance in Wei and convert to ETH
             balance_wei = int(data["result"], 16)
-            balance_eth = balance_wei / 1e18
+            balance_eth = wei_to_eth(balance_wei)
             return balance_eth
         else:
             error_message = data.get("error", "Unknown error")
@@ -229,7 +229,7 @@ def balance():
         try:
             check_date = datetime.strptime(check_date, "%Y-%m-%d")
             balance_wei = retrieve_balance_at_date(wallet_address, check_date)
-            balance_eth = balance_wei / 1e18  # Helper function to calculate ETH
+            balance_eth = wei_to_eth(balance_wei) 
 
             # Retrieve token balances
             token_balances = {

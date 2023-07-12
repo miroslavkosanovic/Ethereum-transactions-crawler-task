@@ -16,12 +16,15 @@ This application allows users to explore transaction data from the Ethereum bloc
 
 
 #### Demo: `IMG`
+![index page](image.png)
+![Transactions data example](image-1.png)
+![Balance at date example](image-2.png)
 
-- Transaction example website: `https://etherscan.io/tokentxns`
 - Demo:
-- how to enter wallet address,
-- block
-- date
+- Transactions wallet example adress: '0x7e2a2FA2a064F693f0a55C5639476d913Ff12D05'
+- block: 9000000
+- Balance wallet example adress: '0x28C6c06298d514Db089934071355E5743bf21d60'
+- date: '2023-07-01'
 
 ##### **Prerequisites**:  
 - Python version 3.0 or later
