@@ -1,17 +1,23 @@
-import requests
+import requests, os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request
 from datetime import datetime
 
 # Set up Flask web application
 app = Flask(__name__)
 
+load_dotenv()
 # Etherscan API key 
-api_key = "9T3AS3DK9127Q7SARB5U8QUJ3BUJSEGGBA"
-RPC_URL = "https://mainnet.infura.io/v3/c02c07d301dd43f291d74f2f89b8a395"
+etherscan_api_key = os.getenv("ETHERSCAN_API_KEY")
+infura_api_key = os.getenv("INFURA_API_KEY")
 
+BNB_TOKEN_ADDRESS = '0xB8c77482e45F1F44dE1745F52C74426C631bDD52'
+STETH_TOKEN_ADDRESS = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
 
+def wei_to_eth(wei):
+    return wei / 1e18
 
-def retrieve_transaction_data(wallet_address, starting_block?):
+def retrieve_transaction_data(wallet_address, starting_block):
     try:
         # todo: check if starting_block else don't pass or pass 1 
         #  todo: make sure its 
@@ -19,19 +25,27 @@ def retrieve_transaction_data(wallet_address, starting_block?):
         #  create helper funciton to check starting_block 
         #  Unit test: when no wallet is passed 
         # unit test: no start_block is passed 
-        #  unit test: api is down - error message 
+        #  unit test: api is down - error message
 
-        if(!starting_block) { starting_block = 1 } 
+        # Check if starting_block is provided and a non-negative number
+        if not starting_block:
+            starting_block = 1
+        elif not starting_block.isdigit() or int(starting_block) < 0:
+            raise ValueError("Invalid starting block number")
 
 
         # Retrieve the transaction data using the Etherscan API
-        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet_address}&startblock={starting_block}&endblock=latest&sort=asc&apikey={api_key}"
+        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet_address}&startblock={starting_block}&endblock=latest&sort=asc&apikey={etherscan_api_key}"
 
         response = requests.get(url)
         data = response.json()
 
         if data.get("status") == "1" and data.get("result") is not None:
             transactions = data["result"]
+
+            # Convert the value from Wei to ETH in each transaction
+            for tx in transactions:
+                tx["value_eth"] = wei_to_eth(int(tx["value"]))
             return transactions
         else:
             error_message = data.get("message", "Unknown error")
@@ -40,7 +54,28 @@ def retrieve_transaction_data(wallet_address, starting_block?):
     except requests.exceptions.RequestException as e:
         raise ConnectionError("Failed to connect to the Etherscan API:", str(e))
 
+def retrieve_wallet_creation_date(wallet_address):
+    try:
+        # Retrieve the earliest transaction for the wallet using the Etherscan API
+        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet_address}&startblock=0&endblock=latest&sort=asc&apikey={etherscan_api_key}"
+        response = requests.get(url)
+        data = response.json()
 
+        if data.get("status") == "1" and data.get("result") is not None:
+            transactions = data["result"]
+            if len(transactions) > 0:
+                earliest_timestamp = int(transactions[0]["timeStamp"])
+                wallet_creation_date = datetime.fromtimestamp(earliest_timestamp)
+                return wallet_creation_date
+            else:
+                raise ValueError("No transactions found for the wallet")
+
+        else:
+            error_message = data.get("message", "Unknown error")
+            raise ValueError(f"Failed to retrieve transaction data: {error_message}")
+
+    except requests.exceptions.RequestException as e:
+        raise ConnectionError("Failed to connect to the Etherscan API:", str(e))
 
 def retrieve_balance_at_date(wallet_address, check_date):
     # todo: helper function - sanitize date: 
@@ -49,30 +84,25 @@ def retrieve_balance_at_date(wallet_address, check_date):
     # constrains to the date of creation: error message if too far in the past 
 
     try:
-        # Convert the date to Unix timestamp
-        unix_timestamp = int(check_date.timestamp())
-        
-        # todo: remove headers if not used 
-        headers = {
-            # Already added when you pass json= but not when you pass data=
-            # 'Content-Type': 'application/json',
-        }
+        wallet_creation_date = retrieve_wallet_creation_date(wallet_address)
+        if check_date < wallet_creation_date:
+            raise ValueError("Invalid check date: Date is before wallet creation")
 
+        # Convert the date to Unix timestamp
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        if check_date > today:
+            raise ValueError("Invalid check date. Please enter a date on or before today.")
+        
+        unix_timestamp = int(check_date.timestamp())
+                
         payload = {
             'jsonrpc': '2.0',
             'id': 1,
             'method': 'eth_blockNumber',
-            'params':  [], # todo: remove this line
         }
 
-        # todo: use RPC_URL instead 
-        response = requests.post('https://mainnet.infura.io/v3/c02c07d301dd43f291d74f2f89b8a395', headers=headers, json=payload) #todo: remove headers 
-        print(response.text ) #todo: remove print 
+        response = requests.post(infura_api_key, json=payload) 
         data = response.json()
-
-        # todo: remove print 
-        print("Request Payload:", payload)
-        print("Response:", data)
 
         if "result" in data:
             # Get the balance in Wei
@@ -80,7 +110,7 @@ def retrieve_balance_at_date(wallet_address, check_date):
 
             return balance_wei
         else:
-            error_message = data.get("error", "Unknown error") # todo: print error message from the api if it makes sense 
+            error_message = data.get("error", "Unknown error") 
             # todo Unit Test 
             raise ValueError(f"Failed to retrieve balance: {error_message}")
 
@@ -91,12 +121,7 @@ def retrieve_balance_at_date(wallet_address, check_date):
 # sanitize token_contract_address
 def retrieve_token_balance(wallet_address, token_contract_address):
     try:
-        # Retrieve the token balance using the Ethereum JSON-RPC API
-        rpc_url = "https://mainnet.infura.io/v3/c02c07d301dd43f291d74f2f89b8a395" # use RPC_URL instead 
-        headers = { # remove headers if not needed 
-
-        }
-
+        # Retrieve the token balance using the Ethereum JSON-RPC API        
         payload = {
             'jsonrpc': '2.0',
             'id': 1,
@@ -104,14 +129,14 @@ def retrieve_token_balance(wallet_address, token_contract_address):
             'params': [
                 {
                     'to': token_contract_address,
-                    'data': f'0x70a08231000000000000000000000000{wallet_address[2:]}' #todo: move to const variable with meaningful name  
+                    'data': f'0x70a08231000000000000000000000000{wallet_address[2:]}' 
                 },
                 'latest'
             ],
         }
 
         # todo: check what happens if no headers is passed 
-        response = requests.post(RPC_URL, headers=headers, json=payload)
+        response = requests.post(infura_api_key, json=payload)
         data = response.json()
 
         if 'result' in data:
@@ -130,7 +155,6 @@ def retrieve_token_balance(wallet_address, token_contract_address):
     except requests.exceptions.RequestException as e:
         raise ConnectionError("Failed to connect to the Ethereum JSON-RPC API:", str(e))
 
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -145,17 +169,12 @@ def index():
             if not transactions:
                 return render_template("index.html", error_message="No transactions found.")
 
-        wallet_data = [
-            {
-                "date": datetime.fromtimestamp(int(tx["timeStamp"])),
-                "value": float(tx["value"]) / 1e18, #helper function to calculate eth
-            }
-            for tx in transactions
-        ]
-
-
+            wallet_data = [{"date": datetime.fromtimestamp(int(tx["timeStamp"])),
+                    "value": wei_to_eth(float(tx["value"])), 
+                }
+                for tx in transactions
+            ]
             return render_template("transaction_data.html", transactions=transactions, wallet_data=wallet_data)
-
 
         except (ValueError, ConnectionError) as e:
             return render_template("index.html", error_message=str(e))
@@ -174,12 +193,10 @@ def balance():
 
             # Retrieve token balances
             token_balances = {
-                'Bnb': retrieve_token_balance(wallet_address,   # todo: set to the meaningful variable '0xB8c77482e45F1F44dE1745F52C74426C631bDD52'),  # todo: set to the meaningful variable 
-                'stETH': retrieve_token_balance(wallet_address, '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84') # todo: set to the meaningful variable 
-            }
-
+                'Bnb': retrieve_token_balance(wallet_address, BNB_TOKEN_ADDRESS),  
+                'stETH': retrieve_token_balance(wallet_address, STETH_TOKEN_ADDRESS) 
+                        }
             return render_template("balance.html", wallet_address=wallet_address, check_date=check_date, eth_balance_eth=balance_eth, token_balances=token_balances)
-
 
         except (ValueError, ConnectionError) as e:
             return render_template("balance.html", error_message=str(e))
