@@ -8,3 +8,9 @@ The application gets iformation on:
 Then it proceeds to show them in a simple human-readable way (ideally through a web page).
 
 Also the application, given a date in YYYY-MM-DD format, returns the exact value of ETH/other tokens that were available on the given adress a YYYY-MM-DD 00:00 UTC time.
+
+# To run this web scraping application 
+Prerequisites: Python version 3.0 or later, Flask ("pip install flask" in your cmd)
+1. Clone the repository
+3. Run main.py
+4. Enter localhost:5000 in your web browser
