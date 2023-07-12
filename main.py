@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request
 from datetime import datetime
-from decimal import Decimal
 
 # Set up Flask web application
 app = Flask(__name__)
