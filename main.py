@@ -118,11 +118,12 @@ def retrieve_balance_at_date(wallet_address, check_date):
         if check_date < wallet_creation_date:
             raise ValueError("Invalid check date: Date is before wallet creation")
 
-        # Convert the date to Unix timestamp
+        
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         if check_date > today:
             raise ValueError("Invalid check date. Please enter a date on or before today.")
-
+            
+        # Convert the date to Unix timestamp
         unix_timestamp = int(check_date.timestamp())
 
         payload = {
@@ -200,9 +201,6 @@ def index():
     if request.method == 'POST':
         wallet_address = request.form['wallet_address']
         starting_block = request.form['starting_block']
-
-        # Throw exception if no wallet_address
-        # Sanitize starting_block
         try:
             transactions = retrieve_transaction_data(wallet_address, starting_block)
 
