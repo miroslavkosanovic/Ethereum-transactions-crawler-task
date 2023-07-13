@@ -15,9 +15,12 @@ This application allows users to explore transaction data from the Ethereum bloc
 
 
 
-#### Demo: `IMG`
+#### Demo: 
+Index page:
 ![index page](image.png)
+Transactions data example:
 ![Transactions data example](image-1.png)
+Balance look up example:
 ![Balance at date example](image-2.png)
 
 - Demo:
